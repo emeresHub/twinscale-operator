@@ -1,0 +1,23 @@
+# Ignore all venv directories in the repository
+**/venv      
+
+# Python-specific files
+**/__pycache__         
+
+# IDE and editor folders and settings
+**/.vscode         
+
+
+
+# Pytest / Unit Test directories
+**/.cache          
+**/nosetests.xml    
+**/coverage.xml     
+**/*.cover          
+
+# Python packaging
+**/dist            
+**/build           
+
+# Local configuration files
+**/*.log            
