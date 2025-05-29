@@ -1,0 +1,9 @@
+## Append samples of your project ##
+resources:
+- core_v0_eventstore.yaml
+- core_v0_mqtttrigger.yaml
+- core_v0_historicaldatastore.yaml
+- core_v0_visualisation.yaml
+- dtd_v0_twininstance.yaml
+- dtd_v0_twininterface.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples

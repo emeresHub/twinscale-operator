@@ -1,0 +1,9 @@
+apiVersion: core.core.twinscale.io/v0
+kind: Visualisation
+metadata:
+  labels:
+    app.kubernetes.io/name: twinscale-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: visualisation-sample
+spec:
+  # TODO(user): Add fields here
