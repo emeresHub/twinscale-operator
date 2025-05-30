@@ -169,7 +169,7 @@ func (r *TwinInterfaceReconciler) createUpdateTwinInterface(ctx context.Context,
 		logger.Error(err, fmt.Sprintf("No Broker Exchange found for TwinInterface %s", twinInterfaceName))
 		resultErrors = append(resultErrors, err)
 	} else {
-		
+
 		// EventStore bindings
 		bindings := r.EventStore.GetEventStoreBrokerBindings(twinInterface, brokerExchange, eventStoreQueue)
 		for _, b3 := range bindings {

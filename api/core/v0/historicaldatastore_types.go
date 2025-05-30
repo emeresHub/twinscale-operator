@@ -24,14 +24,13 @@ import (
 // HistoricalDataStoreSpec defines the desired state of HistoricalDataStore
 type HistoricalDataStoreSpec struct {
 	AutoScaling         HistoricalDataStoreAutoScaling `json:"autoScaling,omitempty"`
-	Resources           corev1.ResourceRequirements   `json:"resources,omitempty"`
-	DispatcherResources corev1.ResourceRequirements   `json:"dispatcherResources,omitempty"`
-	Timeout             *int                            `json:"timeout,omitempty"`
-	
+	Resources           corev1.ResourceRequirements    `json:"resources,omitempty"`
+	DispatcherResources corev1.ResourceRequirements    `json:"dispatcherResources,omitempty"`
+	Timeout             *int                           `json:"timeout,omitempty"`
+
 	// Postgres holds connection info for a PostgreSQL-backed historical store.
 	Postgres PostgresConfig `json:"postgres"`
 }
-
 
 type HistoricalDataStoreAutoScaling struct {
 	MinScale                    *int `json:"minScale,omitempty"`

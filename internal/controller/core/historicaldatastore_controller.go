@@ -27,9 +27,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	corev1 "k8s.io/api/core/v1"
 	corev0 "github.com/emereshub/twinscale-operator/api/core/v0"
 	hdsPkg "github.com/emereshub/twinscale-operator/pkg/historical-data-store"
+	corev1 "k8s.io/api/core/v1"
 	keventing "knative.dev/eventing/pkg/apis/eventing/v1"
 	kserving "knative.dev/serving/pkg/apis/serving/v1"
 )
@@ -42,8 +42,8 @@ import (
 
 type HistoricalDataStoreReconciler struct {
 	client.Client
-	Scheme                *runtime.Scheme
-	HistoricalDataStore   hdsPkg.HistoricalDataStore
+	Scheme              *runtime.Scheme
+	HistoricalDataStore hdsPkg.HistoricalDataStore
 }
 
 // Reconcile is part of the main Kubernetes reconciliation loop which aims to

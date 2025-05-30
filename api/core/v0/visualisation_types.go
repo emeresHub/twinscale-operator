@@ -23,24 +23,24 @@ import (
 
 // VisualisationSpec defines the desired state of Visualisation.
 type VisualisationSpec struct {
-	AutoScaling         VisualisationAutoScaling      `json:"autoScaling,omitempty"`
-	Resources           corev1.ResourceRequirements  `json:"resources,omitempty"`
-	DispatcherResources corev1.ResourceRequirements   `json:"dispatcherResources,omitempty"`
-	Timeout             *int                          `json:"timeout,omitempty"`
+	AutoScaling         VisualisationAutoScaling    `json:"autoScaling,omitempty"`
+	Resources           corev1.ResourceRequirements `json:"resources,omitempty"`
+	DispatcherResources corev1.ResourceRequirements `json:"dispatcherResources,omitempty"`
+	Timeout             *int                        `json:"timeout,omitempty"`
 }
 
 type VisualisationAutoScaling struct {
-	MinScale                    *int `json:"minScale,omitempty"`
-	MaxScale                    *int `json:"maxScale,omitempty"`
-	Target                      *int `json:"target,omitempty"`
-	TargetUtilizationPercentage *int `json:"targetUtilizationPercentage,omitempty"`
-	Parallelism                 *int `json:"parallelism,omitempty"`
+	MinScale                    *int           `json:"minScale,omitempty"`
+	MaxScale                    *int           `json:"maxScale,omitempty"`
+	Target                      *int           `json:"target,omitempty"`
+	TargetUtilizationPercentage *int           `json:"targetUtilizationPercentage,omitempty"`
+	Parallelism                 *int           `json:"parallelism,omitempty"`
 	Metric                      AutoScalerType `json:"metric,omitempty"`
 }
 
 // VisualisationStatus defines the observed state of Visualisation.
 type VisualisationStatus struct {
-	Status string `json:"status,omitempty"`
+	Status     string   `json:"status,omitempty"`
 	Conditions []string `json:"conditions,omitempty"`
 }
 

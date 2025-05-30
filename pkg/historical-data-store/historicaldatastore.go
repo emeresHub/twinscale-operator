@@ -22,8 +22,8 @@ import (
 
 const (
 	HISTORICAL_DATA_STORE_SERVICE = "twinscale-historical-data-store"
-	BROKER_NAME                    = "twinscale"
-	HDS_TRIGGER                    = HISTORICAL_DATA_STORE_SERVICE + "-trigger"
+	BROKER_NAME                   = "twinscale"
+	HDS_TRIGGER                   = HISTORICAL_DATA_STORE_SERVICE + "-trigger"
 )
 
 type HistoricalDataStore interface {

@@ -1,0 +1,12 @@
+apiVersion: eventing.knative.dev/v1alpha1
+kind: RabbitmqBrokerConfig
+metadata:
+  name: rabbitmq-broker-config
+spec:
+  rabbitmqClusterReference:
+    # Configure name if a RabbitMQ Cluster Operator is being used.
+    name: rabbitmq
+    # Configure connectionSecret if an external RabbitMQ cluster is being used.
+    # connectionSecret:
+    #   name: rabbitmq-secret-credentials
+  queueType: quorum

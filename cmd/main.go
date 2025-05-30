@@ -41,6 +41,9 @@ import (
 	dtdv0 "github.com/emereshub/twinscale-operator/api/dtd/v0"
 	corecontroller "github.com/emereshub/twinscale-operator/internal/controller/core"
 	dtdcontroller "github.com/emereshub/twinscale-operator/internal/controller/dtd"
+	rabbitmqv1beta1 "github.com/rabbitmq/messaging-topology-operator/api/v1beta1"
+	keventing "knative.dev/eventing/pkg/apis/eventing/v1"
+	kserving "knative.dev/serving/pkg/apis/serving/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -54,6 +57,9 @@ func init() {
 
 	utilruntime.Must(corev0.AddToScheme(scheme))
 	utilruntime.Must(dtdv0.AddToScheme(scheme))
+	utilruntime.Must(rabbitmqv1beta1.AddToScheme(scheme))
+	utilruntime.Must(kserving.AddToScheme(scheme))
+	utilruntime.Must(keventing.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 

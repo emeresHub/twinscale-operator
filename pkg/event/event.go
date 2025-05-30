@@ -39,30 +39,29 @@ type TriggerParameters struct {
 }
 
 func (e *twinEvent) getEventTypeRealGenerated(twinInterfaceName string) string {
-return fmt.Sprintf(EVENT_TYPE_REAL_GENERATED, twinInterfaceName)
+	return fmt.Sprintf(EVENT_TYPE_REAL_GENERATED, twinInterfaceName)
 }
 
 func (e *twinEvent) getEventTypeCommandExecuted(twinInterfaceName string, commandName string) string {
-return fmt.Sprintf(EVENT_TYPE_COMMAND_EXECUTED, twinInterfaceName, commandName)
+	return fmt.Sprintf(EVENT_TYPE_COMMAND_EXECUTED, twinInterfaceName, commandName)
 }
 
 // Helper for consistent trigger naming
 func (e *twinEvent) getTwinInterfaceTrigger(twinInterfaceName string) string {
-return twinInterfaceName
+	return twinInterfaceName
 }
 
 // Trigger naming for real-to-eventstore pipeline
 func (e *twinEvent) getRealToEventStoreTriggerName(twinInterfaceName string) string {
-return twinInterfaceName + "-real-to-eventstore"
+	return twinInterfaceName + "-real-to-eventstore"
 }
 
 // Labels used in triggers and bindings
 func (e *twinEvent) getTriggerLabels(twinInterfaceName string) map[string]string {
-return map[string]string{
-"twinscale/twin-interface": twinInterfaceName,
+	return map[string]string{
+		"twinscale/twin-interface": twinInterfaceName,
+	}
 }
-}
-
 
 func (e *twinEvent) GetMQQTDispatcherBindings(
 	twinInterface *dtdv0.TwinInterface,
@@ -88,7 +87,7 @@ func (e *twinEvent) GetMQQTDispatcherBindings(
 		Source:        MQTT_EXCHANGE,
 		Destination:   MQTT_DISPATCHER_QUEUE,
 		Labels: map[string]string{
-			"twinscale/twin-interface":         twinInterface.Name,
+			"twinscale/twin-interface":     twinInterface.Name,
 			"eventing.knative.dev/trigger": twinInterface.Name,
 		},
 		RoutingKey: e.getEventTypeRealGenerated(twinInterface.Name + ".#"),
@@ -117,7 +116,7 @@ func (e *twinEvent) GetMQQTDispatcherBindings(
 				Source:        MQTT_EXCHANGE,
 				Destination:   MQTT_DISPATCHER_QUEUE,
 				Labels: map[string]string{
-					"twinscale/twin-interface":         twinInterface.Name,
+					"twinscale/twin-interface":     twinInterface.Name,
 					"eventing.knative.dev/trigger": twinInterface.Name,
 				},
 				RoutingKey: e.getEventTypeRealGenerated(twinInterfaceRelationship.Interface + ".#"),
@@ -141,7 +140,7 @@ func (e *twinEvent) GetRelationshipBrokerBindings(
 				Name:      strings.ToLower(twinInterface.Name) + "-" + strings.ToLower(twinInterfaceRelationship.Name) + "-real-dispatcher",
 				Namespace: twinInterface.Namespace,
 				Labels: map[string]string{
-					"twinscale/twin-interface":         twinInterface.Name,
+					"twinscale/twin-interface":     twinInterface.Name,
 					"eventing.knative.dev/trigger": twinInterface.Name,
 				},
 				Filters: map[string]string{
@@ -219,7 +218,7 @@ func (e *twinEvent) GetTwinInterfaceCommandBindings(
 				Name:      strings.ToLower(twinInterface.Name) + "-" + strings.ToLower(command.Name) + "-command-dispatcher",
 				Namespace: twinInterface.Namespace,
 				Labels: map[string]string{
-					"twinscale/twin-interface":         twinInterface.Name,
+					"twinscale/twin-interface":     twinInterface.Name,
 					"eventing.knative.dev/trigger": twinInterface.Name,
 				},
 				Filters: map[string]string{

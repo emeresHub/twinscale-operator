@@ -20,14 +20,14 @@ import (
 	"context"
 	"fmt"
 
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	corev1 "k8s.io/api/core/v1"
-	appsv1 "k8s.io/api/apps/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -192,9 +192,9 @@ func (r *MQTTTriggerReconciler) applyService(ctx context.Context, desired *corev
 // getMQTTDispatcherQueue builds the Queue resource
 func (r *MQTTTriggerReconciler) getMQTTDispatcherQueue(trigger *corev0.MQTTTrigger) *rabbitmqv1beta1.Queue {
 	args := &rabbitmq.QueueArgs{
-		Name:      event.MQTT_DISPATCHER_QUEUE,
-		Namespace: trigger.Namespace,
-		QueueName: event.MQTT_DISPATCHER_QUEUE,
+		Name:          event.MQTT_DISPATCHER_QUEUE,
+		Namespace:     trigger.Namespace,
+		QueueName:     event.MQTT_DISPATCHER_QUEUE,
 		RabbitMQVhost: "/",
 		RabbitmqClusterReference: &rabbitmqv1beta1.RabbitmqClusterReference{
 			Name:      "rabbitmq",
@@ -291,9 +291,9 @@ func (r *MQTTTriggerReconciler) getMQTTDispatcherService(trigger *corev0.MQTTTri
 // getCloudEventDispatcherQueue builds the Queue for CloudEvent dispatcher
 func (r *MQTTTriggerReconciler) getCloudEventDispatcherQueue(trigger *corev0.MQTTTrigger) *rabbitmqv1beta1.Queue {
 	args := &rabbitmq.QueueArgs{
-		Name:      event.CLOUD_EVENT_DISPATCHER_QUEUE,
-		Namespace: trigger.Namespace,
-		QueueName: event.CLOUD_EVENT_DISPATCHER_QUEUE,
+		Name:          event.CLOUD_EVENT_DISPATCHER_QUEUE,
+		Namespace:     trigger.Namespace,
+		QueueName:     event.CLOUD_EVENT_DISPATCHER_QUEUE,
 		RabbitMQVhost: "/",
 		RabbitmqClusterReference: &rabbitmqv1beta1.RabbitmqClusterReference{
 			Name:      "rabbitmq",
