@@ -1,9 +1,15 @@
 apiVersion: core.core.twinscale.io/v0
 kind: Visualisation
 metadata:
-  labels:
-    app.kubernetes.io/name: twinscale-operator
-    app.kubernetes.io/managed-by: kustomize
   name: visualisation-sample
+  namespace: twinscale
 spec:
-  # TODO(user): Add fields here
+  # ── timeout is optional (defaults to “0” in code) ──
+
+  dispatcherResources:        # required so that .Requests.Cpu/Memory and .Limits.Cpu/Memory are non-nil
+    requests:
+      cpu:    "50m"
+      memory: "64Mi"
+    limits:
+      cpu:    "100m"
+      memory: "128Mi"

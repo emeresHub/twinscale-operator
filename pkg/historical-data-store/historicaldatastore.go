@@ -23,7 +23,6 @@ import (
 const (
 	HISTORICAL_DATA_STORE_SERVICE = "twinscale-historical-data-store"
 	BROKER_NAME                   = "twinscale"
-	HDS_TRIGGER                   = HISTORICAL_DATA_STORE_SERVICE + "-trigger"
 )
 
 type HistoricalDataStore interface {
@@ -123,22 +122,30 @@ func (h *historicalDataStore) MergeService(current, desired *kserving.Service) *
 }
 
 func (h *historicalDataStore) GetTrigger(hds *corev0.HistoricalDataStore) *kEventing.Trigger {
+	name := hds.Name
+	namespace := hds.Namespace
+
+	// Compute trigger name dynamically: "<CR-name>-trigger"
+	triggerName := fmt.Sprintf("%s-trigger", name)
+
 	return knative.NewTrigger(knative.TriggerParameters{
-		TriggerName:    HDS_TRIGGER,
-		Namespace:      hds.Namespace,
-		BrokerName:     BROKER_NAME,
-		SubscriberName: HISTORICAL_DATA_STORE_SERVICE,
+		TriggerName: triggerName,
+		Namespace:   namespace,
+		BrokerName:  BROKER_NAME,
+		// SubscriberName should match the Knative Service name (== hds.Name)
+		SubscriberName: name,
 		OwnerReferences: []v1.OwnerReference{{
 			APIVersion: hds.APIVersion,
 			Kind:       hds.Kind,
-			Name:       hds.Name,
+			Name:       name,
 			UID:        hds.UID,
 		}},
 		Attributes: map[string]string{
 			"type": "twinscale.historicalstore",
 		},
+		// Label key/value “twinscale/historical-data-store”: <CRName>
 		Labels: map[string]string{
-			"twinscale/historical-data-store": HISTORICAL_DATA_STORE_SERVICE,
+			"twinscale/historical-data-store": name,
 		},
 		URL: knative.TriggerURLParameters{
 			Path: "/api/v1/historical-events",
@@ -152,7 +159,10 @@ func (h *historicalDataStore) GetTrigger(hds *corev0.HistoricalDataStore) *kEven
 }
 
 func (h *historicalDataStore) MergeTrigger(current, desired *kEventing.Trigger) *kEventing.Trigger {
+	// Merge both labels/annotations and spec, so all dynamic fields stay in sync
+	current.ObjectMeta.Labels = desired.ObjectMeta.Labels
 	current.ObjectMeta.Annotations = desired.ObjectMeta.Annotations
+	current.Spec = desired.Spec
 	return current
 }
 
@@ -161,6 +171,9 @@ func (h *historicalDataStore) GetBrokerBindings(
 	broker rabbitmqv1beta1.Exchange,
 	queue rabbitmqv1beta1.Queue,
 ) []rabbitmqv1beta1.Binding {
+	// Compute trigger name dynamically: "<TwinInterfaceName>-trigger"
+	triggerName := fmt.Sprintf("%s-trigger", iface.Name)
+
 	b, _ := rabbitmq.NewBinding(rabbitmq.BindingArgs{
 		Name:      strings.ToLower(iface.Name) + "-historical-store",
 		Namespace: iface.Namespace,
@@ -178,8 +191,9 @@ func (h *historicalDataStore) GetBrokerBindings(
 		Source:        broker.Spec.Name,
 		Destination:   queue.Spec.Name,
 		Filters: map[string]string{
-			"type":              fmt.Sprintf("twinscale.historicalstore.%s", iface.Name),
-			"x-knative-trigger": HDS_TRIGGER,
+			"type": fmt.Sprintf("twinscale.historicalstore.%s", iface.Name),
+			// Use the dynamic triggerName here rather than a constant
+			"x-knative-trigger": triggerName,
 			"x-match":           "all",
 		},
 		Labels: map[string]string{},

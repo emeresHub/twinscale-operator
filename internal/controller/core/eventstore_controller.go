@@ -73,7 +73,9 @@ func (r *EventStoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 func (r *EventStoreReconciler) createOrUpdateEventStoreResources(ctx context.Context, es *corev0.EventStore) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
+	// ------------------------------------------------------
 	// 1) Knative Service
+	// ------------------------------------------------------
 	newSvc := r.EventStore.GetEventStoreService(es)
 	err := r.Create(ctx, newSvc, &client.CreateOptions{})
 	if err != nil && !errors.IsAlreadyExists(err) {
@@ -81,13 +83,13 @@ func (r *EventStoreReconciler) createOrUpdateEventStoreResources(ctx context.Con
 		return ctrl.Result{}, err
 	} else if err != nil {
 		// Service exists, update
-		current := &kserving.Service{}
-		if getErr := r.Get(ctx, types.NamespacedName{Namespace: es.Namespace, Name: es.Name}, current); getErr != nil {
+		currentSvc := &kserving.Service{}
+		if getErr := r.Get(ctx, types.NamespacedName{Namespace: es.Namespace, Name: es.Name}, currentSvc); getErr != nil {
 			logger.Error(getErr, fmt.Sprintf("Error fetching existing Service %s", es.Name))
 			return ctrl.Result{}, getErr
 		}
-		merged := r.EventStore.MergeEventStoreService(current, newSvc)
-		if updateErr := r.Update(ctx, merged, &client.UpdateOptions{}); updateErr != nil {
+		mergedSvc := r.EventStore.MergeEventStoreService(currentSvc, newSvc)
+		if updateErr := r.Update(ctx, mergedSvc, &client.UpdateOptions{}); updateErr != nil {
 			logger.Error(updateErr, fmt.Sprintf("Error updating EventStore service %s", es.Name))
 			return ctrl.Result{}, updateErr
 		}
@@ -96,8 +98,13 @@ func (r *EventStoreReconciler) createOrUpdateEventStoreResources(ctx context.Con
 		logger.Info(fmt.Sprintf("Event Store service %s created", es.Name))
 	}
 
+	// ------------------------------------------------------
 	// 2) Knative Trigger
+	// ------------------------------------------------------
+	// Compute the trigger name dynamically: "<CR-name>-trigger"
+	triggerName := fmt.Sprintf("%s-trigger", es.Name)
 	newTrig := r.EventStore.GetEventStoreTrigger(es)
+
 	err = r.Create(ctx, newTrig, &client.CreateOptions{})
 	if err != nil && !errors.IsAlreadyExists(err) {
 		logger.Error(err, fmt.Sprintf("Error creating trigger for EventStore %s", es.Name))
@@ -105,7 +112,6 @@ func (r *EventStoreReconciler) createOrUpdateEventStoreResources(ctx context.Con
 	} else if err != nil {
 		// Trigger exists, update
 		currentTrig := &keventing.Trigger{}
-		triggerName := fmt.Sprintf("%s-trigger", es.Name)
 		if getErr := r.Get(ctx, types.NamespacedName{Namespace: es.Namespace, Name: triggerName}, currentTrig); getErr != nil {
 			logger.Error(getErr, fmt.Sprintf("Error fetching existing Trigger %s", triggerName))
 			return ctrl.Result{}, getErr
@@ -117,7 +123,7 @@ func (r *EventStoreReconciler) createOrUpdateEventStoreResources(ctx context.Con
 		}
 		logger.Info(fmt.Sprintf("Event Store trigger %s updated", triggerName))
 	} else {
-		logger.Info(fmt.Sprintf("Event Store trigger %s created", fmt.Sprintf("%s-trigger", es.Name)))
+		logger.Info(fmt.Sprintf("Event Store trigger %s created", triggerName))
 	}
 
 	return ctrl.Result{}, nil

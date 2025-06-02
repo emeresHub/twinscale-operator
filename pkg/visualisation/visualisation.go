@@ -1,3 +1,5 @@
+// pkg/visualisation/visualisation.go
+
 package visualisation
 
 import (
@@ -23,9 +25,9 @@ import (
 const (
 	VISUALISATION_SERVICE = "twinscale-visualisation"
 	BROKER_NAME           = "twinscale"
-	VISUALISATION_TRIGGER = VISUALISATION_SERVICE + "-trigger"
 )
 
+// Visualisation defines the interface for building Knative Service, Trigger, and RabbitMQ bindings
 type Visualisation interface {
 	GetService(vis *corev0.Visualisation) *kserving.Service
 	MergeService(current, desired *kserving.Service) *kserving.Service
@@ -33,7 +35,9 @@ type Visualisation interface {
 	GetTrigger(vis *corev0.Visualisation) *kEventing.Trigger
 	MergeTrigger(current, desired *kEventing.Trigger) *kEventing.Trigger
 
+	// Now accepts both the Visualisation and the TwinInterface so we can use vis.Name:
 	GetBrokerBindings(
+		vis *corev0.Visualisation,
 		iface *dtdv0.TwinInterface,
 		broker rabbitmqv1beta1.Exchange,
 		queue rabbitmqv1beta1.Queue,
@@ -53,6 +57,7 @@ func (v *visualisation) GetService(vis *corev0.Visualisation) *kserving.Service 
 		timeout = strconv.Itoa(*vis.Spec.Timeout)
 	}
 
+	// Build autoscaling annotations if provided
 	ann := map[string]string{}
 	if !reflect.DeepEqual(vis.Spec.AutoScaling, corev0.VisualisationAutoScaling{}) {
 		as := vis.Spec.AutoScaling
@@ -71,11 +76,13 @@ func (v *visualisation) GetService(vis *corev0.Visualisation) *kserving.Service 
 		if as.Metric != "" {
 			ann["autoscaling.knative.dev/metric"] = string(as.Metric)
 		}
+		// Parallelism (RabbitMQ-specific) if provided:
 		if as.Parallelism != nil {
 			ann["rabbitmq.eventing.knative.dev/parallelism"] = strconv.Itoa(*as.Parallelism)
 		}
 	}
 
+	// Container spec
 	c := corev1.Container{
 		Name:            VISUALISATION_SERVICE + "-v1",
 		Image:           naming.GetContainerRegistry(VISUALISATION_SERVICE + ":0.1"),
@@ -128,8 +135,10 @@ func (v *visualisation) MergeService(current, desired *kserving.Service) *kservi
 }
 
 func (v *visualisation) GetTrigger(vis *corev0.Visualisation) *kEventing.Trigger {
+	triggerName := fmt.Sprintf("%s-trigger", vis.Name)
+
 	return knative.NewTrigger(knative.TriggerParameters{
-		TriggerName:    VISUALISATION_TRIGGER,
+		TriggerName:    triggerName,
 		Namespace:      vis.Namespace,
 		BrokerName:     BROKER_NAME,
 		SubscriberName: VISUALISATION_SERVICE,
@@ -140,7 +149,7 @@ func (v *visualisation) GetTrigger(vis *corev0.Visualisation) *kEventing.Trigger
 			UID:        vis.UID,
 		}},
 		Attributes: map[string]string{
-			"type": "twinscale.visualisation.%s",
+			"type": "twinscale.visualisation." + vis.Name,
 		},
 		Labels: map[string]string{
 			"twinscale/visualisation": VISUALISATION_SERVICE,
@@ -161,13 +170,19 @@ func (v *visualisation) MergeTrigger(current, desired *kEventing.Trigger) *kEven
 	return current
 }
 
+// Now we pass in *corev0.Visualisation so we can use vis.Name:
 func (v *visualisation) GetBrokerBindings(
+	vis *corev0.Visualisation,
 	iface *dtdv0.TwinInterface,
 	broker rabbitmqv1beta1.Exchange,
 	queue rabbitmqv1beta1.Queue,
 ) []rabbitmqv1beta1.Binding {
+	// Use vis.Name when constructing x-knative-trigger:
+	triggerName := fmt.Sprintf("%s-trigger", vis.Name)
+
+	bindingName := strings.ToLower(iface.Name) + "-visualisation"
 	b, _ := rabbitmq.NewBinding(rabbitmq.BindingArgs{
-		Name:      strings.ToLower(iface.Name) + "-visualisation",
+		Name:      bindingName,
 		Namespace: iface.Namespace,
 		Owner: []v1.OwnerReference{{
 			APIVersion: iface.APIVersion,
@@ -184,10 +199,11 @@ func (v *visualisation) GetBrokerBindings(
 		Destination:   queue.Spec.Name,
 		Filters: map[string]string{
 			"type":              fmt.Sprintf("twinscale.visualisation.%s", iface.Name),
-			"x-knative-trigger": VISUALISATION_TRIGGER,
+			"x-knative-trigger": triggerName,
 			"x-match":           "all",
 		},
 		Labels: map[string]string{},
 	})
+
 	return []rabbitmqv1beta1.Binding{b}
 }
