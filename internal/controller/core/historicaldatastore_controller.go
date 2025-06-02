@@ -121,7 +121,7 @@ func (r *HistoricalDataStoreReconciler) createOrUpdateHistoricalDataStoreResourc
 	} else if err != nil {
 		// Trigger exists—update
 		currentTrig := &keventing.Trigger{}
-		triggerName := fmt.Sprintf("%s-trigger", hds.Name)
+		triggerName := hdsPkg.HDS_TRIGGER
 		if getErr := r.Get(ctx, types.NamespacedName{Namespace: hds.Namespace, Name: triggerName}, currentTrig); getErr != nil {
 			logger.Error(getErr, fmt.Sprintf("Error fetching existing trigger %s", triggerName))
 			return ctrl.Result{}, getErr
