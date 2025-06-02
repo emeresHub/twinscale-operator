@@ -1,9 +1,14 @@
 apiVersion: core.core.twinscale.io/v0
 kind: EventStore
 metadata:
-  labels:
-    app.kubernetes.io/name: twinscale-operator
-    app.kubernetes.io/managed-by: kustomize
   name: eventstore-sample
+  namespace: twinscale
 spec:
-  # TODO(user): Add fields here
+  timeout: 30
+
+  postgres:
+    host:     postgresql.twinscale.svc.cluster.local
+    port:     5432
+    user:     twinscale
+    database: twinscale
+    secretName: eventstore-db-secret
