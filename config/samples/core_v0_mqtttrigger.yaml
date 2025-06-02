@@ -1,9 +1,10 @@
 apiVersion: core.core.twinscale.io/v0
 kind: MQTTTrigger
 metadata:
+  name: mqtttrigger-sample
+  namespace: twinscale
   labels:
     app.kubernetes.io/name: twinscale-operator
     app.kubernetes.io/managed-by: kustomize
-  name: mqtttrigger-sample
 spec:
   # TODO(user): Add fields here

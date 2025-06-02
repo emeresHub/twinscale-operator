@@ -54,6 +54,8 @@ type MQTTTriggerReconciler struct {
 func (r *MQTTTriggerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
+	logger.Info("Reconciling MQTTTrigger", "namespace", req.Namespace, "name", req.Name)
+
 	// Fetch the MQTTTrigger resource
 	var mqttTrigger corev0.MQTTTrigger
 	if err := r.Get(ctx, types.NamespacedName{Namespace: req.Namespace, Name: req.Name}, &mqttTrigger); err != nil {

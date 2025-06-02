@@ -23,6 +23,7 @@ spec:
   rabbitmq:
     additionalPlugins:
       - rabbitmq_mqtt
+      - rabbitmq_management 
     additionalConfig: |
       # mqtt.listeners.tcp.default = 1883
       ## Default MQTT with TLS port is 8883
