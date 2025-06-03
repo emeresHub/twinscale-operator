@@ -1,7 +1,7 @@
 apiVersion: core.core.twinscale.io/v0
 kind: Visualisation
 metadata:
-  name: visualisation-sample
+  name: visualisation
   namespace: twinscale
 spec:
   # ── timeout is optional (defaults to “0” in code) ──

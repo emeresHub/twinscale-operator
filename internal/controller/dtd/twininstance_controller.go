@@ -50,6 +50,8 @@ type TwinInstanceReconciler struct {
 func (r *TwinInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
+	logger.Info("Reconciling TwinInstance", "namespace", req.Namespace, "name", req.Name)
+
 	twinInstance := &dtdv0.TwinInstance{}
 	err := r.Get(ctx, types.NamespacedName{Name: req.Name, Namespace: req.Namespace}, twinInstance)
 

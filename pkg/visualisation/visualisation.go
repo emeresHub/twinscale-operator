@@ -141,7 +141,7 @@ func (v *visualisation) GetTrigger(vis *corev0.Visualisation) *kEventing.Trigger
 		TriggerName:    triggerName,
 		Namespace:      vis.Namespace,
 		BrokerName:     BROKER_NAME,
-		SubscriberName: VISUALISATION_SERVICE,
+		SubscriberName: vis.Name,
 		OwnerReferences: []v1.OwnerReference{{
 			APIVersion: vis.APIVersion,
 			Kind:       vis.Kind,

@@ -99,7 +99,7 @@ func (r *TwinInterfaceReconciler) createUpdateTwinInterface(ctx context.Context,
 
 		// Get Event Store
 		eventStoreService := servingv1.Service{}
-		err = r.Get(ctx, types.NamespacedName{Namespace: "twinscale", Name: "event-store"}, &eventStoreService)
+		err = r.Get(ctx, types.NamespacedName{Namespace: "twinscale", Name: "eventstore"}, &eventStoreService)
 		if err != nil {
 			logger.Error(err, "Error while getting event store")
 			resultErrors = append(resultErrors, err)
@@ -236,7 +236,7 @@ func (r *TwinInterfaceReconciler) getEventStoreQueue(ctx context.Context, twinIn
 	queueListOptions := []client.ListOption{
 		client.InNamespace(twinInterface.Namespace),
 		client.MatchingLabels(client.MatchingFields{
-			"eventing.knative.dev/trigger": "event-store-trigger",
+			"eventing.knative.dev/trigger": "eventstore-trigger",
 		}),
 	}
 

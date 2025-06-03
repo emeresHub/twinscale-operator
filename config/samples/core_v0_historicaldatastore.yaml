@@ -1,17 +1,17 @@
 apiVersion: core.core.twinscale.io/v0
 kind: HistoricalDataStore
 metadata:
-  name: historicaldatastore-sample
+  name: historicaldatastore
   namespace: twinscale
   labels:
     app.kubernetes.io/name: twinscale-operator
     app.kubernetes.io/managed-by: kustomize
 spec:
-  timeout: 30            
+  timeout: 30            # ◀️ required by controller logic
 
-  postgres:              
+  postgres:              # ◀️ required by CRD schema
     host:       postgresql.twinscale.svc.cluster.local
     port:       5432
     user:       twinscale
     database:   twinscale
-    secretName: hds-db-secret   
+    secretName: hds-db-secret   # ◀️ must exist in namespace "twinscale"

@@ -2,11 +2,9 @@ apiVersion: eventing.knative.dev/v1alpha1
 kind: RabbitmqBrokerConfig
 metadata:
   name: rabbitmq-broker-config
+  namespace: twinscale
 spec:
   rabbitmqClusterReference:
-    # Configure name if a RabbitMQ Cluster Operator is being used.
     name: rabbitmq
-    # Configure connectionSecret if an external RabbitMQ cluster is being used.
-    # connectionSecret:
-    #   name: rabbitmq-secret-credentials
+    # (optionally) connectionSecret: <your‐rabbitmq‐secret>, if the operator did not create a default secret
   queueType: quorum

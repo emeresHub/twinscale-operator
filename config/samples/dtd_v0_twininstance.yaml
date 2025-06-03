@@ -4,6 +4,7 @@ metadata:
   labels:
     app.kubernetes.io/name: twinscale-operator
     app.kubernetes.io/managed-by: kustomize
-  name: twininstance-sample
+  name: twininstance
+  namespace: twinscale
 spec:
   # TODO(user): Add fields here

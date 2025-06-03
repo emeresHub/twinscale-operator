@@ -1,7 +1,7 @@
 apiVersion: core.core.twinscale.io/v0
 kind: MQTTTrigger
 metadata:
-  name: mqtttrigger-sample
+  name: mqtttrigger
   namespace: twinscale
   labels:
     app.kubernetes.io/name: twinscale-operator

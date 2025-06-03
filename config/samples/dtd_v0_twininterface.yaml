@@ -1,9 +1,17 @@
 apiVersion: dtd.core.twinscale.io/v0
 kind: TwinInterface
 metadata:
-  labels:
-    app.kubernetes.io/name: twinscale-operator
-    app.kubernetes.io/managed-by: kustomize
-  name: twininterface-sample
+  name: twininterface
+  namespace: twinscale
 spec:
-  # TODO(user): Add fields here
+  service:
+    template:
+      metadata: {}    # prevents nil-pointer panics
+      spec:
+        # Providing spec.service with at least one container forces the controller to:
+        #   • Create a Knative Service named "twininterface"
+        #   • Create a Trigger called "twininterface"
+        #   • Create an MQTT dispatcher binding, etc.
+        containers:
+          - name: twin-container
+            image: gcr.io/google-samples/hello-app:1.0
