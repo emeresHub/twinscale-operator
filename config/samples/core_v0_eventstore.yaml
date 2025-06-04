@@ -5,10 +5,9 @@ metadata:
   namespace: twinscale
 spec:
   timeout: 30
-
   postgres:
-    host:     postgresql.twinscale.svc.cluster.local
-    port:     5432
-    user:     twinscale
-    database: twinscale
-    secretName: eventstore-db-secret
+    host: eventstore-postgresql.postgresql.svc.cluster.local
+    port: 5432
+    user: event_user
+    database: event_db
+    secretName: eventstore-postgresql-credentials

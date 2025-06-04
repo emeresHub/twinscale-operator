@@ -28,7 +28,6 @@ func NewEventStore() EventStore {
 	return &eventStore{}
 }
 
-// EventStore defines all helper methods for creating/merging Knative Service, Trigger, and RabbitMQ Bindings.
 type EventStore interface {
 	GetEventStoreService(eventStore *corev0.EventStore) *kserving.Service
 	MergeEventStoreService(currentService *kserving.Service, newService *kserving.Service) *kserving.Service
@@ -41,9 +40,6 @@ type EventStore interface {
 
 type eventStore struct{}
 
-// ------------------------------------------------------
-// 1) Knative Service (no changes needed here)
-// ------------------------------------------------------
 func (t *eventStore) GetEventStoreService(eventStore *corev0.EventStore) *kserving.Service {
 	eventStoreName := eventStore.ObjectMeta.Name
 	timeoutValue := fmt.Sprintf("%d", *eventStore.Spec.Timeout)
@@ -70,7 +66,7 @@ func (t *eventStore) GetEventStoreService(eventStore *corev0.EventStore) *kservi
 		}
 	}
 
-	service := &kserving.Service{
+	return &kserving.Service{
 		TypeMeta: v1.TypeMeta{
 			Kind:       "Service",
 			APIVersion: "serving.knative.dev/v1",
@@ -110,12 +106,52 @@ func (t *eventStore) GetEventStoreService(eventStore *corev0.EventStore) *kservi
 									Resources:       eventStore.Spec.Resources,
 									Env: []corev1.EnvVar{
 										{
-											Name:  "DB_HOST",
-											Value: "postgresql.twinscale.svc.cluster.local",
+											Name: "DB_HOST",
+											ValueFrom: &corev1.EnvVarSource{
+												SecretKeyRef: &corev1.SecretKeySelector{
+													LocalObjectReference: corev1.LocalObjectReference{
+														Name: eventStore.Spec.Postgres.SecretName,
+													},
+													Key: "host",
+												},
+											},
 										},
 										{
-											Name:  "DB_KEYSPACE",
-											Value: "twinscale",
+											Name:  "DB_PORT",
+											Value: strconv.Itoa(int(eventStore.Spec.Postgres.Port)),
+										},
+										{
+											Name: "DB_NAME",
+											ValueFrom: &corev1.EnvVarSource{
+												SecretKeyRef: &corev1.SecretKeySelector{
+													LocalObjectReference: corev1.LocalObjectReference{
+														Name: eventStore.Spec.Postgres.SecretName,
+													},
+													Key: "database",
+												},
+											},
+										},
+										{
+											Name: "DB_USER",
+											ValueFrom: &corev1.EnvVarSource{
+												SecretKeyRef: &corev1.SecretKeySelector{
+													LocalObjectReference: corev1.LocalObjectReference{
+														Name: eventStore.Spec.Postgres.SecretName,
+													},
+													Key: "username",
+												},
+											},
+										},
+										{
+											Name: "DB_PASSWORD",
+											ValueFrom: &corev1.EnvVarSource{
+												SecretKeyRef: &corev1.SecretKeySelector{
+													LocalObjectReference: corev1.LocalObjectReference{
+														Name: eventStore.Spec.Postgres.SecretName,
+													},
+													Key: "password",
+												},
+											},
 										},
 										{
 											Name:  "TIMEOUT",
@@ -130,23 +166,17 @@ func (t *eventStore) GetEventStoreService(eventStore *corev0.EventStore) *kservi
 			},
 		},
 	}
-
-	return service
 }
 
-func (t *eventStore) MergeEventStoreService(currentService *kserving.Service, newService *kserving.Service) *kserving.Service {
+func (t *eventStore) MergeEventStoreService(currentService, newService *kserving.Service) *kserving.Service {
 	currentService.Spec.ConfigurationSpec = newService.Spec.ConfigurationSpec
 	return currentService
 }
 
-// ------------------------------------------------------
-// 2) Knative Trigger (updated to use dynamic triggerName, SubscriberName, and Labels)
-// ------------------------------------------------------
 func (t *eventStore) GetEventStoreTrigger(eventStore *corev0.EventStore) *kEventing.Trigger {
 	name := eventStore.Name
 	namespace := eventStore.Namespace
 
-	// Build CPU/Memory requests & limits
 	var cpuRequest, memoryRequest, cpuLimit, memoryLimit string
 	if eventStore.Spec.DispatcherResources.Requests.Cpu() != nil {
 		cpuRequest = eventStore.Spec.DispatcherResources.Requests.Cpu().String()
@@ -161,14 +191,12 @@ func (t *eventStore) GetEventStoreTrigger(eventStore *corev0.EventStore) *kEvent
 		memoryLimit = eventStore.Spec.DispatcherResources.Limits.Memory().String()
 	}
 
-	// Compute the trigger name dynamically: "<CR-name>-trigger"
 	triggerName := fmt.Sprintf("%s-trigger", name)
 
 	return knative.NewTrigger(knative.TriggerParameters{
-		TriggerName: triggerName,
-		Namespace:   namespace,
-		BrokerName:  "twinscale",
-		// Subscriber should match the Knative Service name (== eventStore.Name)
+		TriggerName:    triggerName,
+		Namespace:      namespace,
+		BrokerName:     "twinscale",
 		SubscriberName: name,
 		OwnerReferences: []v1.OwnerReference{
 			{
@@ -181,7 +209,6 @@ func (t *eventStore) GetEventStoreTrigger(eventStore *corev0.EventStore) *kEvent
 		Attributes: map[string]string{
 			"type": "twinscale.event-store",
 		},
-		// Label key/value “twinscale/event-store” : <CRName>
 		Labels: map[string]string{
 			"twinscale/event-store": name,
 		},
@@ -196,23 +223,15 @@ func (t *eventStore) GetEventStoreTrigger(eventStore *corev0.EventStore) *kEvent
 	})
 }
 
-func (t *eventStore) MergeEventStoreTrigger(currentTrigger *kEventing.Trigger, newTrigger *kEventing.Trigger) *kEventing.Trigger {
-	// Replace Metadata.Labels + Metadata.Annotations completely
+func (t *eventStore) MergeEventStoreTrigger(currentTrigger, newTrigger *kEventing.Trigger) *kEventing.Trigger {
 	currentTrigger.ObjectMeta.Labels = newTrigger.ObjectMeta.Labels
 	currentTrigger.ObjectMeta.Annotations = newTrigger.ObjectMeta.Annotations
-
-	// Replace the entire Spec so that any change to Subscriber/Filters/etc. is applied
 	currentTrigger.Spec = newTrigger.Spec
 	return currentTrigger
 }
 
-// ------------------------------------------------------
-// 3) RabbitMQ Bindings (updated to use dynamic trigger name in filter)
-// ------------------------------------------------------
 func (t *eventStore) GetEventStoreBrokerBindings(twinInterface *dtdv0.TwinInterface, brokerExchange rabbitmqv1beta1.Exchange, eventStoreQueue rabbitmqv1beta1.Queue) []rabbitmqv1beta1.Binding {
 	var eventStoreBindings []rabbitmqv1beta1.Binding
-
-	// Compute the same trigger name that GetEventStoreTrigger uses: "<TwinInterfaceName>-trigger"
 	triggerName := fmt.Sprintf("%s-trigger", twinInterface.Name)
 
 	eventStoreEventingBinding, _ := rabbitmq.NewBinding(rabbitmq.BindingArgs{
@@ -234,8 +253,7 @@ func (t *eventStore) GetEventStoreBrokerBindings(twinInterface *dtdv0.TwinInterf
 		Source:        brokerExchange.Spec.Name,
 		Destination:   eventStoreQueue.Spec.Name,
 		Filters: map[string]string{
-			"type": naming.GetEventTypeEventStoreGenerated(twinInterface.Name),
-			// Use the dynamic trigger name rather than a hard-coded string
+			"type":              naming.GetEventTypeEventStoreGenerated(twinInterface.Name),
 			"x-knative-trigger": triggerName,
 			"x-match":           "all",
 		},

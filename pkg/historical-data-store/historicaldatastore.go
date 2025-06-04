@@ -11,7 +11,6 @@ import (
 
 	corev0 "github.com/emereshub/twinscale-operator/api/core/v0"
 	dtdv0 "github.com/emereshub/twinscale-operator/api/dtd/v0"
-	"github.com/emereshub/twinscale-operator/pkg/naming"
 	knative "github.com/emereshub/twinscale-operator/pkg/third-party/knative"
 	"github.com/emereshub/twinscale-operator/pkg/third-party/rabbitmq"
 
@@ -71,13 +70,62 @@ func (h *historicalDataStore) GetService(hds *corev0.HistoricalDataStore) *kserv
 
 	c := corev1.Container{
 		Name:            HISTORICAL_DATA_STORE_SERVICE + "-v1",
-		Image:           naming.GetContainerRegistry(HISTORICAL_DATA_STORE_SERVICE + ":0.1"),
+		Image:           "gcr.io/google-samples/hello-app:1.0",
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Resources:       hds.Spec.Resources,
 		Env: []corev1.EnvVar{
-			{Name: "DB_HOST", Value: "postgresql.twinscale.svc.cluster.local"},
-			{Name: "DB_KEYSPACE", Value: "twinscale"},
-			{Name: "TIMEOUT", Value: timeout},
+			{
+				Name: "DB_HOST",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: hds.Spec.Postgres.SecretName,
+						},
+						Key: "host",
+					},
+				},
+			},
+			{
+				Name:  "DB_PORT",
+				Value: strconv.Itoa(int(hds.Spec.Postgres.Port)),
+			},
+			{
+				Name: "DB_NAME",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: hds.Spec.Postgres.SecretName,
+						},
+						Key: "database",
+					},
+				},
+			},
+			{
+				Name: "DB_USER",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: hds.Spec.Postgres.SecretName,
+						},
+						Key: "username",
+					},
+				},
+			},
+			{
+				Name: "DB_PASSWORD",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: hds.Spec.Postgres.SecretName,
+						},
+						Key: "password",
+					},
+				},
+			},
+			{
+				Name:  "TIMEOUT",
+				Value: timeout,
+			},
 		},
 	}
 
@@ -125,14 +173,12 @@ func (h *historicalDataStore) GetTrigger(hds *corev0.HistoricalDataStore) *kEven
 	name := hds.Name
 	namespace := hds.Namespace
 
-	// Compute trigger name dynamically: "<CR-name>-trigger"
 	triggerName := fmt.Sprintf("%s-trigger", name)
 
 	return knative.NewTrigger(knative.TriggerParameters{
-		TriggerName: triggerName,
-		Namespace:   namespace,
-		BrokerName:  BROKER_NAME,
-		// SubscriberName should match the Knative Service name (== hds.Name)
+		TriggerName:    triggerName,
+		Namespace:      namespace,
+		BrokerName:     BROKER_NAME,
 		SubscriberName: name,
 		OwnerReferences: []v1.OwnerReference{{
 			APIVersion: hds.APIVersion,
@@ -143,7 +189,6 @@ func (h *historicalDataStore) GetTrigger(hds *corev0.HistoricalDataStore) *kEven
 		Attributes: map[string]string{
 			"type": "twinscale.historicalstore",
 		},
-		// Label key/value “twinscale/historical-data-store”: <CRName>
 		Labels: map[string]string{
 			"twinscale/historical-data-store": name,
 		},
@@ -159,7 +204,6 @@ func (h *historicalDataStore) GetTrigger(hds *corev0.HistoricalDataStore) *kEven
 }
 
 func (h *historicalDataStore) MergeTrigger(current, desired *kEventing.Trigger) *kEventing.Trigger {
-	// Merge both labels/annotations and spec, so all dynamic fields stay in sync
 	current.ObjectMeta.Labels = desired.ObjectMeta.Labels
 	current.ObjectMeta.Annotations = desired.ObjectMeta.Annotations
 	current.Spec = desired.Spec
@@ -171,7 +215,6 @@ func (h *historicalDataStore) GetBrokerBindings(
 	broker rabbitmqv1beta1.Exchange,
 	queue rabbitmqv1beta1.Queue,
 ) []rabbitmqv1beta1.Binding {
-	// Compute trigger name dynamically: "<TwinInterfaceName>-trigger"
 	triggerName := fmt.Sprintf("%s-trigger", iface.Name)
 
 	b, _ := rabbitmq.NewBinding(rabbitmq.BindingArgs{
@@ -191,8 +234,7 @@ func (h *historicalDataStore) GetBrokerBindings(
 		Source:        broker.Spec.Name,
 		Destination:   queue.Spec.Name,
 		Filters: map[string]string{
-			"type": fmt.Sprintf("twinscale.historicalstore.%s", iface.Name),
-			// Use the dynamic triggerName here rather than a constant
+			"type":              fmt.Sprintf("twinscale.historicalstore.%s", iface.Name),
 			"x-knative-trigger": triggerName,
 			"x-match":           "all",
 		},
