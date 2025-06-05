@@ -8,9 +8,27 @@ rules:
   - ""
   resources:
   - secrets
+  - services
   verbs:
+  - create
+  - delete
   - get
   - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - core.core.twinscale.io
   resources:
@@ -75,3 +93,42 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - eventing.knative.dev
+  resources:
+  - brokers
+  - triggers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rabbitmq.com
+  resources:
+  - bindings
+  - exchanges
+  - queues
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - serving.knative.dev
+  resources:
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch

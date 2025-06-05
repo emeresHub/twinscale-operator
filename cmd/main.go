@@ -63,6 +63,25 @@ func init() {
 	// +kubebuilder:scaffold:scheme
 }
 
+
+// ClusterRole permissions
+
+// Kubernetes resources
+//+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+
+// KNative resources
+//+kubebuilder:rbac:groups=serving.knative.dev,resources=services,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=eventing.knative.dev,resources=triggers,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=eventing.knative.dev,resources=brokers,verbs=get;list;watch;create;update;patch;delete
+
+// RabbitMQ Resources
+// +kubebuilder:rbac:groups=rabbitmq.com,resources=exchanges,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=rabbitmq.com,resources=queues,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=rabbitmq.com,resources=bindings,verbs=get;list;watch;create;update;patch;delete
+
+
 // nolint:gocyclo
 func main() {
 	var metricsAddr string
