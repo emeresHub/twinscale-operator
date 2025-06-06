@@ -1,0 +1,43 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: rabbitmq
+spec:
+  replicas: 2 # Adjust this value (e.g., from "4" to "2")
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: twinscale-node
+            operator: In
+            values:
+            - "core"
+  resources:
+    requests:
+      cpu: "500m"    # Adjust this value (e.g., from "2" to "500m")
+      memory: "2Gi"  # Adjust this value (e.g., from "12Gi" to "2Gi") 
+    limits:
+      cpu: "1" # Adjust this value (e.g., from "3" to "1")
+      memory: "4Gi" # Adjust this value (e.g., from "12Gi" to "4Gi")
+  rabbitmq:
+    additionalPlugins:
+      - rabbitmq_mqtt
+      - rabbitmq_management 
+    additionalConfig: |
+      # mqtt.listeners.tcp.default = 1883
+      ## Default MQTT with TLS port is 8883
+      # mqtt.listeners.ssl.default = 8883
+
+      # Anonymous connections, if allowed, will use the default
+      # credentials specified here
+      mqtt.allow_anonymous  = true
+      mqtt.default_user     = guest
+      mqtt.default_pass     = guest
+
+      mqtt.vhost            = /
+      mqtt.exchange         = amq.topic
+      
+      # 24 hours by default
+      mqtt.subscription_ttl = 86400000
+      mqtt.prefetch         = 10

@@ -8,6 +8,16 @@
 **/.vscode         
 
 
+# Go coverage profiles
+coverage.out
+*.coverprofile
+
+# Go test binaries
+*.test
+
+# (optional) other Go coverage files
+coverage.html
+
 
 # Pytest / Unit Test directories
 **/.cache          

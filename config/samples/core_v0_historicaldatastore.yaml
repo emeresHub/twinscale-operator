@@ -1,0 +1,13 @@
+apiVersion: core.core.twinscale.io/v0
+kind: HistoricalDataStore
+metadata:
+  name: historicaldatastore
+  namespace: twinscale
+spec:
+  timeout: 30
+  postgres:
+    host: historicalstore-postgresql.postgresql.svc.cluster.local
+    port: 5432
+    user: hds_user
+    database: hds_db
+    secretName: historicalstore-postgresql-credentials

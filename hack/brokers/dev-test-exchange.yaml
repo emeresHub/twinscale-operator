@@ -1,0 +1,14 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: Exchange
+metadata:
+  name: twinscale
+  namespace: twinscale
+  labels:
+    eventing.knative.dev/broker: twinscale
+spec:
+  name: twinscale
+  type: topic
+  rabbitmqClusterReference:
+    name: rabbitmq
+    namespace: twinscale
+

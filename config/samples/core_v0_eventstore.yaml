@@ -1,0 +1,13 @@
+apiVersion: core.core.twinscale.io/v0
+kind: EventStore
+metadata:
+  name: eventstore
+  namespace: twinscale
+spec:
+  timeout: 30
+  postgres:
+    host: eventstore-postgresql.postgresql.svc.cluster.local
+    port: 5432
+    user: event_user
+    database: event_db
+    secretName: eventstore-postgresql-credentials
