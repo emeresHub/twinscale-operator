@@ -117,6 +117,9 @@ func (t *twinService) GetService(twinServiceParameters TwinServiceParameters) *k
 		}
 	}
 
+	tpl := twinServiceParameters.TwinInterface.Spec.Service.Template
+	volumes := tpl.Spec.Volumes
+	
 	service := &kserving.Service{
 		TypeMeta: v1.TypeMeta{
 			Kind:       "Service",
@@ -145,9 +148,10 @@ func (t *twinService) GetService(twinServiceParameters TwinServiceParameters) *k
 						PodSpec: corev1.PodSpec{
 							NodeSelector: map[string]string{
 								"kubernetes.io/arch": "amd64",
-								"twinscale-node":     "service",
+								"twinscale-node":         "service",
 							},
 							Containers: containers,
+							Volumes:    volumes,
 						},
 					},
 				},

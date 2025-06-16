@@ -31,3 +31,13 @@ coverage.html
 
 # Local configuration files
 **/*.log            
+
+
+# Dev container definitions
+/.devcontainer/
+
+# Test directories
+/test/
+
+# Locally built binaries
+/bin/
